@@ -7,6 +7,8 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 from data_util import config
 from numpy import random
 
+from training_ptr_gen.StructuredAttention import StructuredAttention
+
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
 random.seed(123)
@@ -46,6 +48,8 @@ class Encoder(nn.Module):
         init_wt_normal(self.embedding.weight)
 
         self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
+        device = torch.device("cuda" if config.use_gpu else "cpu")
+        self.sa = StructuredAttention(device, self.sem_dim_size, config.hidden_dim, True, "nightly")
         init_lstm_wt(self.lstm)
 
     #seq_lens should be in descending order
@@ -54,9 +58,10 @@ class Encoder(nn.Module):
 
         packed = pack_padded_sequence(embedded, seq_lens, batch_first=True)
         output, hidden = self.lstm(packed)
-
         h, _ = pad_packed_sequence(output, batch_first=True)  # h dim = B x t_k x n
         h = h.contiguous()
+        sa_encoded_tokens, token_attention_matrix = self.sa.forward(h)
+        h = torch.cat([h,sa_encoded_tokens], dim=2)
         max_h, _ = h.max(dim=1)
 
         return h, hidden, max_h
