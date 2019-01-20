@@ -93,9 +93,10 @@ class Attention(nn.Module):
         self.v = nn.Linear(config.hidden_dim * 2, 1, bias=False)
 
     def forward(self, s_t_hat, h, enc_padding_mask, coverage):
-        b, t_k, n = list(h.size())
-        h = h.view(-1, n)  # B * t_k x 2*hidden_dim
+        b, t_k, n1 = list(h.size())
+        h = h.view(-1, n1)  # B * t_k x 2*hidden_dim
         encoder_feature = self.W_h(h)
+        b, t_k, n = list(encoder_feature.size())
 
         dec_fea = self.decode_proj(s_t_hat) # B x 2*hidden_dim
         dec_fea_expanded = dec_fea.unsqueeze(1).expand(b, t_k, n).contiguous() # B x t_k x 2*hidden_dim
@@ -116,7 +117,7 @@ class Attention(nn.Module):
         attn_dist = attn_dist_ / normalization_factor
 
         attn_dist = attn_dist.unsqueeze(1)  # B x 1 x t_k
-        h = h.view(-1, t_k, n)  # B x t_k x 2*hidden_dim
+        h = h.view(-1, t_k, n1)  # B x t_k x 2*hidden_dim
         c_t = torch.bmm(attn_dist, h)  # B x 1 x n
         c_t = c_t.view(-1, config.hidden_dim * 2+ config.sem_dim_size*2)  # B x 2*hidden_dim
 

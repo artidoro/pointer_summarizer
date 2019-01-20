@@ -37,4 +37,4 @@ use_gpu=True
 
 lr_coverage=0.15
 
-use_maxpool_init_ctx = False
+use_maxpool_init_ctx = True
