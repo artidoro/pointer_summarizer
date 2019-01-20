@@ -49,7 +49,7 @@ class Encoder(nn.Module):
 
         self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
         device = torch.device("cuda" if config.use_gpu else "cpu")
-        self.sa = StructuredAttention(device, self.sem_dim_size, config.hidden_dim, True, "nightly")
+        self.sa = StructuredAttention(device, 2*config.sem_dim_size, 2*config.hidden_dim, True, "nightly")
         init_lstm_wt(self.lstm)
 
     #seq_lens should be in descending order

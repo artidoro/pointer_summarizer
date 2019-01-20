@@ -3,8 +3,8 @@ from __future__ import unicode_literals, print_function, division
 import os
 import time
 
-import tensorflow as tf
 import torch
+import tensorflow as tf
 from model import Model
 from torch.nn.utils import clip_grad_norm
 

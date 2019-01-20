@@ -100,9 +100,10 @@ class BeamSearch(object):
             batch = self.batcher.next_batch()
 
         print("Decoder has finished reading dataset for single_pass.")
-        print("Now starting ROUGE eval...")
-        results_dict = rouge_eval(self._rouge_ref_dir, self._rouge_dec_dir)
-        rouge_log(results_dict, self._decode_dir)
+        print("Results in: "+str(self._rouge_dec_dir))
+        #print("Now starting ROUGE eval...")
+        #results_dict = rouge_eval(self._rouge_ref_dir, self._rouge_dec_dir)
+        #rouge_log(results_dict, self._decode_dir)
 
 
     def beam_search(self, batch):
