@@ -70,15 +70,15 @@ class ReduceState(nn.Module):
     def __init__(self):
         super(ReduceState, self).__init__()
 
-        self.reduce_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim)
+        self.reduce_h = nn.Linear(config.hidden_dim * 2 , config.hidden_dim)
         init_linear_wt(self.reduce_h)
-        self.reduce_c = nn.Linear(config.hidden_dim * 2, config.hidden_dim)
+        self.reduce_c = nn.Linear(config.hidden_dim * 2 , config.hidden_dim)
         init_linear_wt(self.reduce_c)
 
     def forward(self, hidden):
         h, c = hidden # h, c dim = 2 x b x hidden_dim
-        hidden_reduced_h = F.relu(self.reduce_h(h.view(-1, config.hidden_dim * 2)))
-        hidden_reduced_c = F.relu(self.reduce_c(c.view(-1, config.hidden_dim * 2)))
+        hidden_reduced_h = F.relu(self.reduce_h(h.view(-1, config.hidden_dim * 2 )))
+        hidden_reduced_c = F.relu(self.reduce_c(c.view(-1, config.hidden_dim * 2 )))
 
         return (hidden_reduced_h.unsqueeze(0), hidden_reduced_c.unsqueeze(0)) # h, c dim = 1 x b x hidden_dim
 
@@ -86,7 +86,7 @@ class Attention(nn.Module):
     def __init__(self):
         super(Attention, self).__init__()
         # attention
-        self.W_h = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2, bias=False)
+        self.W_h = nn.Linear(config.hidden_dim * 2+ config.sem_dim_size*2, config.hidden_dim * 2, bias=False)
         if config.is_coverage:
             self.W_c = nn.Linear(1, config.hidden_dim * 2, bias=False)
         self.decode_proj = nn.Linear(config.hidden_dim * 2, config.hidden_dim * 2)
@@ -118,7 +118,7 @@ class Attention(nn.Module):
         attn_dist = attn_dist.unsqueeze(1)  # B x 1 x t_k
         h = h.view(-1, t_k, n)  # B x t_k x 2*hidden_dim
         c_t = torch.bmm(attn_dist, h)  # B x 1 x n
-        c_t = c_t.view(-1, config.hidden_dim * 2)  # B x 2*hidden_dim
+        c_t = c_t.view(-1, config.hidden_dim * 2+ config.sem_dim_size*2)  # B x 2*hidden_dim
 
         attn_dist = attn_dist.view(-1, t_k)  # B x t_k
 
@@ -136,16 +136,16 @@ class Decoder(nn.Module):
         self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
         init_wt_normal(self.embedding.weight)
 
-        self.x_context = nn.Linear(config.hidden_dim * 2 + config.emb_dim, config.emb_dim)
+        self.x_context = nn.Linear(config.hidden_dim * 2 + config.sem_dim_size*2 + config.emb_dim, config.emb_dim)
 
         self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=False)
         init_lstm_wt(self.lstm)
 
         if config.pointer_gen:
-            self.p_gen_linear = nn.Linear(config.hidden_dim * 4 + config.emb_dim, 1)
+            self.p_gen_linear = nn.Linear(config.hidden_dim * 4+ config.sem_dim_size*2 + config.emb_dim, 1)
 
         #p_vocab
-        self.out1 = nn.Linear(config.hidden_dim * 3, config.hidden_dim)
+        self.out1 = nn.Linear(config.hidden_dim * 3+ config.sem_dim_size*2, config.hidden_dim)
         self.out2 = nn.Linear(config.hidden_dim, config.vocab_size)
         init_linear_wt(self.out2)
 
