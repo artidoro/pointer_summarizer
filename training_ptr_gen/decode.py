@@ -19,6 +19,7 @@ from data_util import data, config
 from model import Model
 from data_util.utils import write_for_rouge, rouge_eval, rouge_log
 from train_util import get_input_from_batch
+import argparse
 
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
@@ -31,7 +32,8 @@ class Beam(object):
     self.context = context
     self.coverage = coverage
 
-  def extend(self, token, log_prob, state, context, coverage):
+
+def extend(self, token, log_prob, state, context, coverage):
     return Beam(tokens = self.tokens + [token],
                       log_probs = self.log_probs + [log_prob],
                       state = state,
@@ -48,9 +50,9 @@ class Beam(object):
 
 
 class BeamSearch(object):
-    def __init__(self, model_file_path):
+    def __init__(self, model_file_path, save_path):
         model_name = os.path.basename(model_file_path)
-        self._decode_dir = os.path.join(config.log_root, 'decode_%s' % (model_name))
+        self._decode_dir = os.path.join(config.log_root, save_path, 'decode_%s' % (model_name))
         self._rouge_ref_dir = os.path.join(self._decode_dir, 'rouge_ref')
         self._rouge_dec_dir = os.path.join(self._decode_dir, 'rouge_dec_dir')
         for p in [self._decode_dir, self._rouge_ref_dir, self._rouge_dec_dir]:
@@ -102,6 +104,7 @@ class BeamSearch(object):
         print("Decoder has finished reading dataset for single_pass.")
         print("Now starting ROUGE eval...")
         results_dict = rouge_eval(self._rouge_ref_dir, self._rouge_dec_dir)
+        print(results_dict)
         rouge_log(results_dict, self._decode_dir)
 
 
@@ -204,8 +207,14 @@ class BeamSearch(object):
         return beams_sorted[0]
 
 if __name__ == '__main__':
-    model_filename = sys.argv[1]
-    beam_Search_processor = BeamSearch(model_filename)
+    parser = argparse.ArgumentParser(description='PyTorch Structured Summarization Model')
+    parser.add_argument('--save_path', type=str, default=None, help='location of the save path')
+    parser.add_argument('--reload_path', type=str, default=None, help='location of the older saved path')
+
+    args = parser.parse_args()
+    model_filename = args.reload_path
+    save_path = args.save_path
+    beam_Search_processor = BeamSearch(model_filename, save_path)
     beam_Search_processor.decode()
 
 

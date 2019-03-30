@@ -201,6 +201,18 @@ class Batcher(object):
     batch = self._batch_queue.get() # get the next Batch
     return batch
 
+  def setup_queues(self):
+    self._example_q_threads = []
+    for _ in range(self._num_example_q_threads):
+      self._example_q_threads.append(Thread(target=self.fill_example_queue))
+      self._example_q_threads[-1].daemon = True
+      self._example_q_threads[-1].start()
+    self._batch_q_threads = []
+    for _ in range(self._num_batch_q_threads):
+      self._batch_q_threads.append(Thread(target=self.fill_batch_queue))
+      self._batch_q_threads[-1].daemon = True
+      self._batch_q_threads[-1].start()
+
   def fill_example_queue(self):
     input_gen = self.text_generator(data.example_generator(self._data_path, self._single_pass))
 
