@@ -148,6 +148,7 @@ def abstract2sents(abstract):
   sents = []
   while True:
     try:
+      abstract = str(abstract)
       start_p = abstract.index(SENTENCE_START, cur)
       end_p = abstract.index(SENTENCE_END, start_p + 1)
       cur = end_p + len(SENTENCE_END)
