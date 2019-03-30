@@ -178,4 +178,4 @@ if __name__ == '__main__':
     # reload_path = args.reload_path
 
     train_processor = Train(args, save_path)
-    train_processor.train_iters(config.max_iterations, args)
+    train_processor.trainIters(config.max_iterations, args)
