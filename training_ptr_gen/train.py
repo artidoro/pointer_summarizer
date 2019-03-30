@@ -92,7 +92,7 @@ class Train(object):
 
         self.optimizer.step()
 
-        return loss.data[0]
+        return loss.item()
 
     def get_loss(self, batch):
         enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_1, coverage = \
