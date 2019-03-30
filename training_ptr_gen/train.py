@@ -152,7 +152,7 @@ class Train(object):
 
     def run_eval(self):
         running_avg_loss, iter = 0, 0
-        self.model.module.eval()
+        self.model.eval()
         self.eval_batcher._finished_reading = False
         self.eval_batcher.setup_queues()
         batch = self.eval_batcher.next_batch()
