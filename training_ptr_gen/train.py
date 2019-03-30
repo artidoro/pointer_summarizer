@@ -175,7 +175,7 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
     save_path = args.save_path
-    # reload_path = args.reload_path
+    reload_path = args.reload_path
 
     train_processor = Train(args, save_path)
-    train_processor.trainIters(config.max_iterations, args)
+    train_processor.trainIters(config.max_iterations, reload_path)
