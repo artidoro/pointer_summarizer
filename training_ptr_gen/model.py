@@ -211,3 +211,8 @@ class Model(object):
             self.encoder.load_state_dict(state['encoder_state_dict'])
             self.decoder.load_state_dict(state['decoder_state_dict'], strict=False)
             self.reduce_state.load_state_dict(state['reduce_state_dict'])
+
+    def eval(self):
+        self.encoder = self.encoder.eval()
+        self.decoder = self.decoder.eval()
+        self.reduce_state = self.reduce_state.eval()
