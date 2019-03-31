@@ -4,8 +4,8 @@ from __future__ import unicode_literals, print_function, division
 
 import sys
 
-reload(sys)
-sys.setdefaultencoding('utf8')
+#reload(sys)
+#sys.setdefaultencoding('utf8')
 
 import os
 import time
@@ -40,13 +40,13 @@ def extend(self, token, log_prob, state, context, coverage):
                       context = context,
                       coverage = coverage)
 
-  @property
-  def latest_token(self):
-    return self.tokens[-1]
+    @property
+    def latest_token(self):
+        return self.tokens[-1]
 
-  @property
-  def avg_log_prob(self):
-    return sum(self.log_probs) / len(self.tokens)
+    @property
+    def avg_log_prob(self):
+        return sum(self.log_probs) / len(self.tokens)
 
 
 class BeamSearch(object):
