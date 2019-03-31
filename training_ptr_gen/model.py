@@ -216,3 +216,8 @@ class Model(object):
         self.encoder = self.encoder.eval()
         self.decoder = self.decoder.eval()
         self.reduce_state = self.reduce_state.eval()
+
+    def train(self):
+        self.encoder = self.encoder.train()
+        self.decoder = self.decoder.train()
+        self.reduce_state = self.reduce_state.train()

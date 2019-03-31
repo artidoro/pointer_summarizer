@@ -131,6 +131,7 @@ class Train(object):
         start = time.time()
         best_val_loss = None
         while iter < n_iters:
+            self.model.train()
             batch = self.batcher.next_batch()
             loss = self.train_one_batch(batch)
 
