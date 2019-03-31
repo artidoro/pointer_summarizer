@@ -1,11 +1,11 @@
-#Except for the pytorch part content of this file is copied from https://github.com/abisee/pointer-generator/blob/master/
+# Except for the pytorch part content of this file is copied from https://github.com/abisee/pointer-generator/blob/master/
 
 from __future__ import unicode_literals, print_function, division
 
 import sys
 
-#reload(sys)
-#sys.setdefaultencoding('utf8')
+# reload(sys)
+# sys.setdefaultencoding('utf8')
 
 import os
 import time
@@ -21,24 +21,23 @@ from data_util.utils import write_for_rouge, rouge_eval, rouge_log
 from train_util import get_input_from_batch
 import argparse
 
-
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
+
 class Beam(object):
-  def __init__(self, tokens, log_probs, state, context, coverage):
-    self.tokens = tokens
-    self.log_probs = log_probs
-    self.state = state
-    self.context = context
-    self.coverage = coverage
+    def __init__(self, tokens, log_probs, state, context, coverage):
+        self.tokens = tokens
+        self.log_probs = log_probs
+        self.state = state
+        self.context = context
+        self.coverage = coverage
 
-
-def extend(self, token, log_prob, state, context, coverage):
-    return Beam(tokens = self.tokens + [token],
-                      log_probs = self.log_probs + [log_prob],
-                      state = state,
-                      context = context,
-                      coverage = coverage)
+    def extend(self, token, log_prob, state, context, coverage):
+        return Beam(tokens=self.tokens + [token],
+                    log_probs=self.log_probs + [log_prob],
+                    state=state,
+                    context=context,
+                    coverage=coverage)
 
     @property
     def latest_token(self):
@@ -69,7 +68,6 @@ class BeamSearch(object):
     def sort_beams(self, beams):
         return sorted(beams, key=lambda h: h.avg_log_prob, reverse=True)
 
-
     def decode(self):
         start = time.time()
         counter = 0
@@ -96,7 +94,7 @@ class BeamSearch(object):
                             self._rouge_ref_dir, self._rouge_dec_dir)
             counter += 1
             if counter % 1000 == 0:
-                print('%d example in %d sec'%(counter, time.time() - start))
+                print('%d example in %d sec' % (counter, time.time() - start))
                 start = time.time()
 
             batch = self.batcher.next_batch()
@@ -107,9 +105,8 @@ class BeamSearch(object):
         print(results_dict)
         rouge_log(results_dict, self._decode_dir)
 
-
     def beam_search(self, batch):
-        #batch should have only one example
+        # batch should have only one example
         enc_batch, enc_padding_mask, enc_lens, enc_batch_extend_vocab, extra_zeros, c_t_0, coverage_t_0 = \
             get_input_from_batch(batch, use_cuda)
 
@@ -119,17 +116,17 @@ class BeamSearch(object):
         if config.use_maxpool_init_ctx:
             c_t_0 = max_encoder_output
 
-        dec_h, dec_c = s_t_0 # 1 x 2*hidden_size
+        dec_h, dec_c = s_t_0  # 1 x 2*hidden_size
         dec_h = dec_h.squeeze()
         dec_c = dec_c.squeeze()
 
-        #decoder batch preparation, it has beam_size example initially everything is repeated
+        # decoder batch preparation, it has beam_size example initially everything is repeated
         beams = [Beam(tokens=[self.vocab.word2id(data.START_DECODING)],
                       log_probs=[0.0],
                       state=(dec_h[0], dec_c[0]),
-                      context = c_t_0[0],
+                      context=c_t_0[0],
                       coverage=(coverage_t_0[0] if config.is_coverage else None))
-                 for _ in xrange(config.beam_size)]
+                 for _ in range(config.beam_size)]
         results = []
         steps = 0
         while steps < config.max_dec_steps and len(results) < config.beam_size:
@@ -139,7 +136,7 @@ class BeamSearch(object):
             y_t_1 = Variable(torch.LongTensor(latest_tokens))
             if use_cuda:
                 y_t_1 = y_t_1.cuda()
-            all_state_h =[]
+            all_state_h = []
             all_state_c = []
 
             all_context = []
@@ -162,8 +159,10 @@ class BeamSearch(object):
                 coverage_t_1 = torch.stack(all_coverage, 0)
 
             final_dist, s_t, c_t, attn_dist, p_gen, coverage_t = self.model.decoder(y_t_1, s_t_1,
-                                                        encoder_outputs, enc_padding_mask, c_t_1,
-                                                        extra_zeros, enc_batch_extend_vocab, coverage_t_1)
+                                                                                    encoder_outputs, enc_padding_mask,
+                                                                                    c_t_1,
+                                                                                    extra_zeros, enc_batch_extend_vocab,
+                                                                                    coverage_t_1)
 
             topk_log_probs, topk_ids = torch.topk(final_dist, config.beam_size * 2)
 
@@ -173,18 +172,18 @@ class BeamSearch(object):
 
             all_beams = []
             num_orig_beams = 1 if steps == 0 else len(beams)
-            for i in xrange(num_orig_beams):
+            for i in range(num_orig_beams):
                 h = beams[i]
                 state_i = (dec_h[i], dec_c[i])
                 context_i = c_t[i]
                 coverage_i = (coverage_t[i] if config.is_coverage else None)
 
-                for j in xrange(config.beam_size * 2):  # for each of the top 2*beam_size hyps:
+                for j in range(config.beam_size * 2):  # for each of the top 2*beam_size hyps:
                     new_beam = h.extend(token=topk_ids[i, j].data[0],
-                                   log_prob=topk_log_probs[i, j].data[0],
-                                   state=state_i,
-                                   context=context_i,
-                                   coverage=coverage_i)
+                                        log_prob=topk_log_probs[i, j].data[0],
+                                        state=state_i,
+                                        context=context_i,
+                                        coverage=coverage_i)
                     all_beams.append(new_beam)
 
             beams = []
@@ -206,6 +205,7 @@ class BeamSearch(object):
 
         return beams_sorted[0]
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Structured Summarization Model')
     parser.add_argument('--save_path', type=str, default=None, help='location of the save path')
@@ -216,5 +216,3 @@ if __name__ == '__main__':
     save_path = args.save_path
     beam_Search_processor = BeamSearch(model_filename, save_path)
     beam_Search_processor.decode()
-
-
