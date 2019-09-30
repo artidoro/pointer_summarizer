@@ -40,10 +40,13 @@ def init_wt_unif(wt):
     wt.data.uniform_(-config.rand_unif_init_mag, config.rand_unif_init_mag)
 
 class Encoder(nn.Module):
-    def __init__(self):
+    def __init__(self, vocab):
         super(Encoder, self).__init__()
-        self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
-        init_wt_normal(self.embedding.weight)
+        if config.embedding_file is None:
+            self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
+            init_wt_normal(self.embedding.weight)
+        else:
+            self.embedding = nn.Embedding.from_pretrained(vocab.embedding_matrix)
 
         self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
         init_lstm_wt(self.lstm)

@@ -21,7 +21,7 @@ use_cuda = config.use_gpu and torch.cuda.is_available()
 
 class Train(object):
     def __init__(self, args, model_name = None):
-        self.vocab = Vocab(config.vocab_path, config.vocab_size)
+        self.vocab = Vocab(config.vocab_path, config.vocab_size, config.embedding_file)
         self.batcher = Batcher(config.train_data_path, self.vocab, mode='train',
                                batch_size=config.batch_size, single_pass=False)
         self.eval_batcher = Batcher(config.eval_data_path, self.vocab, mode='eval',
@@ -55,7 +55,7 @@ class Train(object):
         torch.save(state, model_save_path)
 
     def setup_train(self, model_file_path=None):
-        self.model = Model(model_file_path)
+        self.model = Model(self.vocab, model_file_path)
 
         params = list(self.model.encoder.parameters()) + list(self.model.decoder.parameters()) + \
                  list(self.model.reduce_state.parameters())
