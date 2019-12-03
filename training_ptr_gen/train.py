@@ -25,9 +25,9 @@ class Train(object):
         self.args = args
         self.vocab = Vocab(config.vocab_path, config.vocab_size, config.embedding_file)
         self.batcher = Batcher(args.train_data_path, self.vocab, mode='train',
-                               batch_size=args.batch_size, single_pass=False)
+                               batch_size=args.batch_size, single_pass=False, args=args)
         self.eval_batcher = Batcher(args.eval_data_path, self.vocab, mode='eval',
-                                    batch_size=args.batch_size, single_pass=True)
+                                    batch_size=args.batch_size, single_pass=True, args=args)
         time.sleep(15)
 
         if model_name is None:

@@ -17,8 +17,9 @@ random.seed(1234)
 
 class Example(object):
 
-  def __init__(self, article, abstract_sentences, vocab):
+  def __init__(self, article, abstract_sentences, vocab, args):
     # Get ids of special tokens
+    self.args = args
     start_decoding = vocab.word2id(data.START_DECODING)
     stop_decoding = vocab.word2id(data.STOP_DECODING)
 
@@ -35,7 +36,7 @@ class Example(object):
     abs_ids = [vocab.word2id(w) for w in abstract_words] # list of word ids; OOVs are represented by the id for UNK token
 
     # Get the decoder input sequence and target sequence
-    self.dec_input, self.target = self.get_dec_inp_targ_seqs(abs_ids, config.max_dec_steps, start_decoding, stop_decoding)
+    self.dec_input, self.target = self.get_dec_inp_targ_seqs(abs_ids, args.max_dec_steps, start_decoding, stop_decoding)
     self.dec_len = len(self.dec_input)
 
     # If using pointer-generator mode, we need to store some extra info
@@ -47,7 +48,7 @@ class Example(object):
       abs_ids_extend_vocab = data.abstract2ids(abstract_words, vocab, self.article_oovs)
 
       # Overwrite decoder target sequence so it uses the temp article OOV ids
-      _, self.target = self.get_dec_inp_targ_seqs(abs_ids_extend_vocab, config.max_dec_steps, start_decoding, stop_decoding)
+      _, self.target = self.get_dec_inp_targ_seqs(abs_ids_extend_vocab, args.max_dec_steps, start_decoding, stop_decoding)
 
     # Store the original strings
     self.original_article = article
@@ -126,12 +127,12 @@ class Batch(object):
   def init_decoder_seq(self, example_list):
     # Pad the inputs and targets
     for ex in example_list:
-      ex.pad_decoder_inp_targ(config.max_dec_steps, self.pad_id)
+      ex.pad_decoder_inp_targ(self.args.max_dec_steps, self.pad_id)
 
     # Initialize the numpy arrays.
-    self.dec_batch = np.zeros((self.batch_size, config.max_dec_steps), dtype=np.int32)
-    self.target_batch = np.zeros((self.batch_size, config.max_dec_steps), dtype=np.int32)
-    self.dec_padding_mask = np.zeros((self.batch_size, config.max_dec_steps), dtype=np.float32)
+    self.dec_batch = np.zeros((self.batch_size, self.args.max_dec_steps), dtype=np.int32)
+    self.target_batch = np.zeros((self.batch_size, self.args.max_dec_steps), dtype=np.int32)
+    self.dec_padding_mask = np.zeros((self.batch_size, self.args.max_dec_steps), dtype=np.float32)
     self.dec_lens = np.zeros((self.batch_size), dtype=np.int32)
 
     # Fill in the numpy arrays
@@ -151,9 +152,10 @@ class Batch(object):
 class Batcher(object):
   BATCH_QUEUE_MAX = 100 # max number of batches the batch_queue can hold
 
-  def __init__(self, data_path, vocab, mode, batch_size, single_pass):
+  def __init__(self, data_path, vocab, mode, batch_size, single_pass, args):
     self._data_path = data_path
     self._vocab = vocab
+    self.args = args
     self._single_pass = single_pass
     self.mode = mode
     self.batch_size = batch_size
@@ -229,7 +231,7 @@ class Batcher(object):
           raise Exception("single_pass mode is off but the example generator is out of data; error.")
 
       abstract_sentences = [sent.strip() for sent in data.abstract2sents(abstract)] # Use the <s> and </s> tags in abstract to get a list of sentences.
-      example = Example(article, abstract_sentences, self._vocab) # Process into an Example.
+      example = Example(article, abstract_sentences, self._vocab, self.args) # Process into an Example.
       self._example_queue.put(example) # place the Example in the example queue.
 
   def fill_batch_queue(self):

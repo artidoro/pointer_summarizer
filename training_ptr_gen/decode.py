@@ -61,7 +61,7 @@ class BeamSearch(object):
 
         self.vocab = Vocab(args.vocab_path, config.vocab_size, config.embedding_file)
         self.batcher = Batcher(args.decode_data_path, self.vocab, mode='decode',
-                               batch_size=args.beam_size, single_pass=True)
+                               batch_size=args.beam_size, single_pass=True, args=args)
         time.sleep(15)
 
         self.model = Model(self.vocab, model_file_path, is_eval=True)
