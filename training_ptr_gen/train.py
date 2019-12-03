@@ -54,6 +54,8 @@ class Train(object):
             'current_loss': running_avg_loss
         }
         model_save_path = os.path.join(self.model_dir, 'model_%d_%d' % (iter, int(time.time())))
+        print(model_save_path)
+        # logger.debug(model_save_path)
         torch.save(state, model_save_path)
 
     def setup_train(self, model_file_path=None):
