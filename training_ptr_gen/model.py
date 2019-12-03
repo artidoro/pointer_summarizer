@@ -198,7 +198,7 @@ class Decoder(nn.Module):
 class Model(object):
     def __init__(self, vocab, model_file_path=None, is_eval=False):
         encoder = Encoder(vocab)
-        decoder = Decoder()
+        decoder = Decoder(vocab)
         reduce_state = ReduceState()
 
         # shared the embedding between encoder and decoder
