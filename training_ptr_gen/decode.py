@@ -58,8 +58,8 @@ class BeamSearch(object):
         for p in [self._decode_dir, self._rouge_ref_dir, self._rouge_dec_dir]:
             if not os.path.exists(p):
                 os.mkdir(p)
-
-        self.vocab = Vocab(args.vocab_path, config.vocab_size, config.embedding_file)
+        vocab = args.vocab_path if args.vocab_path is not None else config.vocab_path
+        self.vocab = Vocab(vocab, config.vocab_size, config.embedding_file)
         self.batcher = Batcher(args.decode_data_path, self.vocab, mode='decode',
                                batch_size=args.beam_size, single_pass=True, args=args)
         time.sleep(15)
