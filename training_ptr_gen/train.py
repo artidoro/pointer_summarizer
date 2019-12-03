@@ -63,7 +63,7 @@ class Train(object):
 
         params = list(self.model.encoder.parameters()) + list(self.model.decoder.parameters()) + \
                  list(self.model.reduce_state.parameters())
-        initial_lr = self.args.lr_coverage if self.args.is_coverage else self.args.lr
+        initial_lr = self.args.lr_coverage if config.is_coverage else self.args.lr
         self.optimizer = AdagradCustom(params, lr=initial_lr, initial_accumulator_value=config.adagrad_init_acc)
 
         start_iter, start_loss = 0, 0
@@ -134,7 +134,8 @@ class Train(object):
         start_iter, running_avg_loss = self.setup_train(model_file_path)
         start = time.time()
         best_val_loss = None
-        for iter in tqdm(range(start_iter, n_iters)):
+        for it in tqdm(range(start_iter, n_iters)):
+            iter = start_iter + it
             self.model.train()
             batch = self.batcher.next_batch()
             loss = self.train_one_batch(batch)
