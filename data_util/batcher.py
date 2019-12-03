@@ -84,8 +84,9 @@ class Example(object):
 
 
 class Batch(object):
-  def __init__(self, example_list, vocab, batch_size):
+  def __init__(self, example_list, vocab, batch_size, args):
     self.batch_size = batch_size
+    self.args = args
     self.pad_id = vocab.word2id(data.PAD_TOKEN) # id of the PAD token used to pad sequences
     self.init_encoder_seq(example_list) # initialize the input to the encoder
     self.init_decoder_seq(example_list) # initialize the input and targets for the decoder
@@ -240,7 +241,7 @@ class Batcher(object):
         # beam search decode mode single example repeated in the batch
         ex = self._example_queue.get()
         b = [ex for _ in range(self.batch_size)]
-        self._batch_queue.put(Batch(b, self._vocab, self.batch_size))
+        self._batch_queue.put(Batch(b, self._vocab, self.batch_size, self.args))
       else:
         # Get bucketing_cache_size-many batches of Examples into a list, then sort
         inputs = []
@@ -255,7 +256,7 @@ class Batcher(object):
         if not self._single_pass:
           shuffle(batches)
         for b in batches:  # each b is a list of Example objects
-          self._batch_queue.put(Batch(b, self._vocab, self.batch_size))
+          self._batch_queue.put(Batch(b, self._vocab, self.batch_size, self.args))
 
   def watch_threads(self):
     while True:
