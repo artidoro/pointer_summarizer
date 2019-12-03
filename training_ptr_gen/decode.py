@@ -58,12 +58,12 @@ class BeamSearch(object):
             if not os.path.exists(p):
                 os.mkdir(p)
 
-        self.vocab = Vocab(config.vocab_path, config.vocab_size)
+        self.vocab = Vocab(config.vocab_path, config.vocab_size, config.embedding_file)
         self.batcher = Batcher(config.decode_data_path, self.vocab, mode='decode',
                                batch_size=config.beam_size, single_pass=True)
         time.sleep(15)
 
-        self.model = Model(model_file_path, is_eval=True)
+        self.model = Model(self.vocab, model_file_path, is_eval=True)
 
     def sort_beams(self, beams):
         return sorted(beams, key=lambda h: h.avg_log_prob, reverse=True)

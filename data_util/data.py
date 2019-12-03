@@ -54,6 +54,7 @@ class Vocab(object):
     print("Finished constructing vocabulary of %i total words. Last word added: %s" % (self._count, self._id_to_word[self._count-1]))
 
     if embeddings_file is not None:
+      print("Reading from file: ", str(embeddings_file))
       embeddings_index = {}
       f = open(embeddings_file)
       for line in f:

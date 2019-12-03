@@ -16,6 +16,7 @@ from data_util.data import Vocab
 from data_util.utils import calc_running_avg_loss
 from train_util import get_input_from_batch, get_output_from_batch
 import argparse
+from tqdm import tqdm
 
 use_cuda = config.use_gpu and torch.cuda.is_available()
 
@@ -127,23 +128,23 @@ class Train(object):
         return loss
 
     def trainIters(self, n_iters, model_file_path=None):
-        iter, running_avg_loss = self.setup_train(model_file_path)
+        start_iter, running_avg_loss = self.setup_train(model_file_path)
         start = time.time()
         best_val_loss = None
-        while iter < n_iters:
+        for iter in tqdm(range(start_iter, n_iters)):
             self.model.train()
             batch = self.batcher.next_batch()
             loss = self.train_one_batch(batch)
 
             running_avg_loss = calc_running_avg_loss(loss, running_avg_loss, iter)
-            iter += 1
+            #iter += 1
 
             print_interval = 1000
-            if iter % print_interval == 0:
+            if iter!=0 and iter % print_interval == 0:
                 print('steps %d, seconds for %d batch: %.2f , loss: %f' % (iter, print_interval,
                                                                            time.time() - start, loss))
                 start = time.time()
-            if iter % 5000 == 0:
+            if iter!= 0 and iter % 5000 == 0:
                 loss = self.run_eval()
                 if best_val_loss is None or loss < best_val_loss:
                     best_val_loss = loss

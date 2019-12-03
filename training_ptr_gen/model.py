@@ -46,8 +46,10 @@ class Encoder(nn.Module):
             self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
             init_wt_normal(self.embedding.weight)
         else:
-            self.embedding = nn.Embedding.from_pretrained(vocab.embedding_matrix)
+            self.embedding = nn.Embedding.from_pretrained(torch.FloatTensor(vocab.embedding_matrix))
+            config.emb_dim = vocab.embedding_dim
 
+        self.embedding.weight.requires_grad=True
         self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
         init_lstm_wt(self.lstm)
 

@@ -13,7 +13,7 @@ embedding_file = os.path.join(root_dir, 'glove/glove.6B.300d.txt')
 # Hyperparameters
 hidden_dim= 256
 emb_dim= 128
-batch_size= 8
+batch_size= 21
 max_enc_steps=400
 max_dec_steps=100
 beam_size=4

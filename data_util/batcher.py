@@ -1,6 +1,6 @@
 #Most of this file is copied form https://github.com/abisee/pointer-generator/blob/master/batcher.py
 
-import queue
+import Queue as queue
 import time
 from random import shuffle
 from threading import Thread
