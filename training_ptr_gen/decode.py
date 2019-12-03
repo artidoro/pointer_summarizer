@@ -49,7 +49,8 @@ class Beam(object):
 
 
 class BeamSearch(object):
-    def __init__(self, model_file_path, save_path):
+    def __init__(self, args, model_file_path, save_path):
+        self.args = args
         model_name = os.path.basename(model_file_path)
         self._decode_dir = os.path.join(config.log_root, save_path, 'decode_%s' % (model_name))
         self._rouge_ref_dir = os.path.join(self._decode_dir, 'rouge_ref')
@@ -58,9 +59,9 @@ class BeamSearch(object):
             if not os.path.exists(p):
                 os.mkdir(p)
 
-        self.vocab = Vocab(config.vocab_path, config.vocab_size, config.embedding_file)
-        self.batcher = Batcher(config.decode_data_path, self.vocab, mode='decode',
-                               batch_size=config.beam_size, single_pass=True)
+        self.vocab = Vocab(args.vocab_path, config.vocab_size, config.embedding_file)
+        self.batcher = Batcher(args.decode_data_path, self.vocab, mode='decode',
+                               batch_size=args.beam_size, single_pass=True)
         time.sleep(15)
 
         self.model = Model(self.vocab, model_file_path, is_eval=True)
@@ -126,10 +127,10 @@ class BeamSearch(object):
                       state=(dec_h[0], dec_c[0]),
                       context=c_t_0[0],
                       coverage=(coverage_t_0[0] if config.is_coverage else None))
-                 for _ in range(config.beam_size)]
+                 for _ in range(self.args.beam_size)]
         results = []
         steps = 0
-        while steps < config.max_dec_steps and len(results) < config.beam_size:
+        while steps < self.args.max_dec_steps and len(results) < self.args.beam_size:
             latest_tokens = [h.latest_token for h in beams]
             latest_tokens = [t if t < self.vocab.size() else self.vocab.word2id(data.UNKNOWN_TOKEN) \
                              for t in latest_tokens]
@@ -164,7 +165,7 @@ class BeamSearch(object):
                                                                                     extra_zeros, enc_batch_extend_vocab,
                                                                                     coverage_t_1)
 
-            topk_log_probs, topk_ids = torch.topk(final_dist, config.beam_size * 2)
+            topk_log_probs, topk_ids = torch.topk(final_dist, self.args.beam_size * 2)
 
             dec_h, dec_c = s_t
             dec_h = dec_h.squeeze()
@@ -178,7 +179,7 @@ class BeamSearch(object):
                 context_i = c_t[i]
                 coverage_i = (coverage_t[i] if config.is_coverage else None)
 
-                for j in range(config.beam_size * 2):  # for each of the top 2*beam_size hyps:
+                for j in range(self.args.beam_size * 2):  # for each of the top 2*beam_size hyps:
                     new_beam = h.extend(token=topk_ids[i, j].item(),
                                         log_prob=topk_log_probs[i, j].item(),
                                         state=state_i,
@@ -193,7 +194,7 @@ class BeamSearch(object):
                         results.append(h)
                 else:
                     beams.append(h)
-                if len(beams) == config.beam_size or len(results) == config.beam_size:
+                if len(beams) == self.args.beam_size or len(results) == self.args.beam_size:
                     break
 
             steps += 1
@@ -210,9 +211,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Structured Summarization Model')
     parser.add_argument('--save_path', type=str, default=None, help='location of the save path')
     parser.add_argument('--reload_path', type=str, default=None, help='location of the older saved path')
+    parser.add_argument('--decode_data_path', type=str, default='/remote/bones/user/public/vbalacha/datasets/cnndailymail/finished_files_wlabels_p3/test.bin', help='location of the decode data path')
+    parser.add_argument('--vocab_path', type=str, default=None, help='location of the eval data path')
+
+    parser.add_argument('--max_dec_steps', type=int, default=100, help='Max Dec Steps')
+    parser.add_argument('--beam_size', type=int, default=3, help='Max Dec Steps')
+
+
 
     args = parser.parse_args()
     model_filename = args.reload_path
     save_path = args.save_path
-    beam_Search_processor = BeamSearch(model_filename, save_path)
+    beam_Search_processor = BeamSearch(args, model_filename, save_path)
     beam_Search_processor.decode()

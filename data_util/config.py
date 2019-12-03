@@ -13,14 +13,14 @@ embedding_file = os.path.join(root_dir, 'glove/glove.6B.300d.txt')
 # Hyperparameters
 hidden_dim= 256
 emb_dim= 128
-batch_size= 21
+# batch_size= 21
 max_enc_steps=400
-max_dec_steps=100
-beam_size=4
+# max_dec_steps=100
+# beam_size=4
 min_dec_steps=35
 vocab_size=50000
 
-lr=0.15
+# lr=0.15
 adagrad_init_acc=0.1
 rand_unif_init_mag=0.02
 trunc_norm_init_std=1e-4
@@ -35,6 +35,6 @@ max_iterations = 700000
 
 use_gpu=True
 
-lr_coverage=0.15
+# lr_coverage=0.15
 
 use_maxpool_init_ctx = False

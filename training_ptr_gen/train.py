@@ -22,11 +22,12 @@ use_cuda = config.use_gpu and torch.cuda.is_available()
 
 class Train(object):
     def __init__(self, args, model_name = None):
+        self.args = args
         self.vocab = Vocab(config.vocab_path, config.vocab_size, config.embedding_file)
-        self.batcher = Batcher(config.train_data_path, self.vocab, mode='train',
-                               batch_size=config.batch_size, single_pass=False)
-        self.eval_batcher = Batcher(config.eval_data_path, self.vocab, mode='eval',
-                                    batch_size=config.batch_size, single_pass=True)
+        self.batcher = Batcher(args.train_data_path, self.vocab, mode='train',
+                               batch_size=args.batch_size, single_pass=False)
+        self.eval_batcher = Batcher(args.eval_data_path, self.vocab, mode='eval',
+                                    batch_size=args.batch_size, single_pass=True)
         time.sleep(15)
 
         if model_name is None:
@@ -60,7 +61,7 @@ class Train(object):
 
         params = list(self.model.encoder.parameters()) + list(self.model.decoder.parameters()) + \
                  list(self.model.reduce_state.parameters())
-        initial_lr = config.lr_coverage if config.is_coverage else config.lr
+        initial_lr = self.args.lr_coverage if self.args.is_coverage else self.args.lr
         self.optimizer = AdagradCustom(params, lr=initial_lr, initial_accumulator_value=config.adagrad_init_acc)
 
         start_iter, start_loss = 0, 0
@@ -105,7 +106,7 @@ class Train(object):
         if config.use_maxpool_init_ctx:
             c_t_1 = max_encoder_output
         step_losses = []
-        for di in range(min(max_dec_len, config.max_dec_steps)):
+        for di in range(min(max_dec_len, self.args.max_dec_steps)):
             y_t_1 = dec_batch[:, di]  # Teacher forcing
             final_dist, s_t_1, c_t_1, attn_dist, p_gen, coverage = self.model.decoder(y_t_1, s_t_1,
                                                                                       encoder_outputs, enc_padding_mask,
@@ -172,6 +173,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Structured Summarization Model')
     parser.add_argument('--save_path', type=str, default=None, help='location of the save path')
     parser.add_argument('--reload_path', type=str, default=None, help='location of the older saved path')
+    parser.add_argument('--train_data_path', type=str, default='/remote/bones/user/public/vbalacha/datasets/cnndailymail/finished_files_wlabels_p3/chunked/train_*', help='location of the train data path')
+    parser.add_argument('--eval_data_path', type=str, default='/remote/bones/user/public/vbalacha/datasets/cnndailymail/finished_files_wlabels_p3/val.bin', help='location of the eval data path')
+    parser.add_argument('--vocab_path', type=str, default=None, help='location of the eval data path')
+
+    parser.add_argument('--lr', type=float, default=0.15, help='Learning Rate')
+    parser.add_argument('--lr_coverage', type=float, default=0.15, help='Learning Rate for Coverage')
+    parser.add_argument('--batch_size', type=int, default=8, help='Batch Size')
+    parser.add_argument('--max_dec_steps', type=int, default=100, help='Max Dec Steps')
+
     # parser.add_argument('--use_glove', action='store_true', default=False, help='use_glove_embeddings for training')
 
     # if all false - summarization with just plain attention over sentences - 17.6 or so rouge
