@@ -8,7 +8,8 @@ eval_data_path = os.path.join(root_dir, "finished_files/val.bin")
 decode_data_path = os.path.join(root_dir, "finished_files/test.bin")
 vocab_path = os.path.join(root_dir, "finished_files/vocab")
 log_root = os.path.join(root_dir, "log")
-embedding_file = os.path.join(root_dir, 'glove/glove.6B.300d.txt')
+embedding_file = None
+#embedding_file = os.path.join(root_dir, 'glove/glove.6B.300d.txt')
 
 # Hyperparameters
 hidden_dim= 256
@@ -37,4 +38,4 @@ use_gpu=True
 
 # lr_coverage=0.15
 
-use_maxpool_init_ctx = False
+use_maxpool_init_ctx = True
