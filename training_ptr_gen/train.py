@@ -172,6 +172,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='PyTorch Structured Summarization Model')
     parser.add_argument('--save_path', type=str, default=None, help='location of the save path')
     parser.add_argument('--reload_path', type=str, default=None, help='location of the older saved path')
+    # parser.add_argument('--use_glove', action='store_true', default=False, help='use_glove_embeddings for training')
 
     # if all false - summarization with just plain attention over sentences - 17.6 or so rouge
 

@@ -45,12 +45,14 @@ class Encoder(nn.Module):
         if config.embedding_file is None:
             self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
             init_wt_normal(self.embedding.weight)
+            emb_dim = config.emb_dim
         else:
+            print("Using pretrained embeddings")
             self.embedding = nn.Embedding.from_pretrained(torch.FloatTensor(vocab.embedding_matrix))
-            config.emb_dim = vocab.embedding_dim
+            emb_dim = vocab.embedding_dim
 
         self.embedding.weight.requires_grad=True
-        self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
+        self.lstm = nn.LSTM(emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=True)
         init_lstm_wt(self.lstm)
 
     #seq_lens should be in descending order
@@ -129,20 +131,24 @@ class Attention(nn.Module):
         return c_t, attn_dist, coverage
 
 class Decoder(nn.Module):
-    def __init__(self):
+    def __init__(self, vocab):
         super(Decoder, self).__init__()
         self.attention_network = Attention()
+        if config.embedding_file is not None:
+            emb_dim = vocab.embedding_dim
+        else:
+            emb_dim = config.emb_dim
         # decoder
-        self.embedding = nn.Embedding(config.vocab_size, config.emb_dim)
+        self.embedding = nn.Embedding(config.vocab_size, emb_dim)
         init_wt_normal(self.embedding.weight)
 
-        self.x_context = nn.Linear(config.hidden_dim * 2 + config.emb_dim, config.emb_dim)
+        self.x_context = nn.Linear(config.hidden_dim * 2 + emb_dim, emb_dim)
 
-        self.lstm = nn.LSTM(config.emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=False)
+        self.lstm = nn.LSTM(emb_dim, config.hidden_dim, num_layers=1, batch_first=True, bidirectional=False)
         init_lstm_wt(self.lstm)
 
         if config.pointer_gen:
-            self.p_gen_linear = nn.Linear(config.hidden_dim * 4 + config.emb_dim, 1)
+            self.p_gen_linear = nn.Linear(config.hidden_dim * 4 + emb_dim, 1)
 
         #p_vocab
         self.out1 = nn.Linear(config.hidden_dim * 3, config.hidden_dim)
