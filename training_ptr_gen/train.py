@@ -24,6 +24,8 @@ class Train(object):
     def __init__(self, args, model_name = None):
         self.args = args
         vocab = args.vocab_path if args.vocab_path is not None else config.vocab_path
+        print(args.vocab_path)
+        print(vocab)
         self.vocab = Vocab(vocab, config.vocab_size, config.embedding_file)
         self.batcher = Batcher(args.train_data_path, self.vocab, mode='train',
                                batch_size=args.batch_size, single_pass=False, args=args)
